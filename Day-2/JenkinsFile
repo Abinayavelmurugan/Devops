@@ -1,0 +1,39 @@
+pipeline {
+agent any
+environment {
+REGISTRY = &quot;your-dockerhub-username&quot; // Use the same DockerHub
+username
+IMAGE_NAME = &quot;webapp&quot;
+TAG = &quot;latest&quot;
+WORKDIR = &quot;/opt/docker-kec&quot; // Change the folder path based on
+where your Dockerfile and docker-compose.yml reside
+}
+stages {
+stage(&#39;Build &amp; Push Docker Image&#39;) {
+steps {
+dir(&quot;$WORKDIR&quot;) {
+sh &#39;docker build -t $REGISTRY/$IMAGE_NAME:$TAG .&#39;
+withDockerRegistry([credentialsId: &#39;docker-hub-
+creds&#39;, url: &#39;&#39;]) {
+sh &#39;docker push $REGISTRY/$IMAGE_NAME:$TAG&#39;
+}
+}
+}
+}
+stage(&#39;Deploy Application&#39;) {
+steps {
+dir(&quot;$WORKDIR&quot;) {
+sh &#39;docker-compose up -d&#39;
+}
+}
+}
+}
+post {
+success {
+echo &#39;Build, Push &amp; Deploy Successful!&#39;
+}
+failure {
+echo &#39;Pipeline Failed. Check logs!&#39;
+}
+}
+}
